@@ -16,6 +16,10 @@ export const Logo = () => {
             height="40"
             alt="Logo"
             />
+
+            <p className={cn("font-semibold", font.className)}>
+                Motion
+            </p>
         </div>
     )
 }
