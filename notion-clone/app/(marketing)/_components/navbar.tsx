@@ -3,10 +3,11 @@
 import { useScrollTop } from "@/hooks/use-scroll-top"
 
 import { useConvexAuth } from "convex/react"
-import { SignInButton } from "@clerk/clerk-react"
+import { SignInButton, UserButton } from "@clerk/clerk-react"
 import { Button } from "@/components/ui/button"
 
 import { Spinner } from "@/components/ui/spinner"
+import Link from "next/link"
 
 import { cn } from "@/lib/utils"
 import { Logo } from "./logo"
@@ -42,6 +43,18 @@ export const Navbar = () => {
                                 Get Motion free
                             </Button>
                         </SignInButton>
+                    </>
+                )}
+
+                {isAuthenticated && !isLoading && (
+                    <>
+                        <Button variant="ghost" size="sm" asChild>
+                            <Link href="/documents">
+                                Enter Motion
+                            </Link>
+                        </Button>
+
+                        <UserButton afterSignOutUrl="/" />
                     </>
                 )}
 
