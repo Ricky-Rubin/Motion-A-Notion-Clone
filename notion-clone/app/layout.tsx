@@ -1,3 +1,5 @@
+import { Toaster } from "sonner";
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -51,6 +53,7 @@ export default function RootLayout({
           disableTransitionOnChange
           storageKey="motion-theme-2"
         >
+          <Toaster position="bottom-center" />
           {children}
         </ThemeProvider>
       </ConvexClientProvider>
