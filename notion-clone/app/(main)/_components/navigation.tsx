@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils"
 import { UserItem } from "./user-item";
 import { Item } from "./item";
 
+import { DocumentList } from "./document-list"
+
 export const Navigation = () => {
     const pathname = usePathname();
     const isMobile = useMediaQuery("(max-width: 768px)");
@@ -155,7 +157,7 @@ export const Navigation = () => {
                 </div>
 
                 <div className="mt-4">
-                    
+                    <DocumentList />
                 </div>
                 
                 <div
