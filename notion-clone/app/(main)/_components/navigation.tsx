@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronsLeft, MenuIcon, PlusCircle, Search, Settings, Plus } from "lucide-react"
+import { ChevronsLeft, MenuIcon, PlusCircle, Search, Settings, Plus, Trash } from "lucide-react"
 import { ElementRef, useRef, useState, useEffect } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { usePathname } from "next/navigation"
@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils"
 import { UserItem } from "./user-item";
 import { Item } from "./item";
+
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 
 import { DocumentList } from "./document-list"
 
@@ -164,6 +166,18 @@ export const Navigation = () => {
                     icon={Plus}
                     label="Add a page"
                     />
+                    <Popover>
+                        <PopoverTrigger className="w-full mt-4">
+                            <Item label="Trash" icon={Trash} />
+                        </PopoverTrigger>
+
+                        <PopoverContent 
+                            side={isMobile ? "bottom" : "right"}
+                            className="p-0 w-72"
+                        >
+                            <p>Trash box</p>
+                        </PopoverContent>
+                    </Popover>
                 </div>
                 
                 <div
