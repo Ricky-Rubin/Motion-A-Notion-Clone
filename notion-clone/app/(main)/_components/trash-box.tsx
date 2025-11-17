@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Undo, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
+import { ConfirmModal } from "@/components/ui/modals/confirm-modal"
 
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -91,9 +92,27 @@ export const TrashBox = () => {
                         onClick={() => onClick(document._id)}
                         className="text-sm rounded-sm w-full hover:bg-primary/5 flex items-center text-primary justify-between"
                     >
-                        <span>
+                        <span className="truncate pl-2">
                             {document.title}
                         </span>
+
+                        <div className="flex items-center">
+                            <div
+                                onClick={(e) => onRestore(e, document._id)}
+                                role="button"
+                                className="rounded-sm p-2 hover:bg-neutral-200"
+                            >
+                                <Undo className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <ConfirmModal onConfirm={() => onRemove(document._id)}>
+                                <div
+                                    role="button"
+                                    className="rounded-sm p-2 hover:bg-neutral-200"
+                                >
+                                    <Trash className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                            </ConfirmModal>
+                        </div>
                     </div>
                 ))}
             </div>
