@@ -26,7 +26,7 @@ export const ConfirmModal = ({
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>
     ) => {
         e.stopPropagation();
-        onConfirm;
+        onConfirm();
     };
 
     return (
@@ -57,5 +57,5 @@ export const ConfirmModal = ({
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-    )
-}
+    );
+};
