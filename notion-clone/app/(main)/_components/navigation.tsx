@@ -18,15 +18,15 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { DocumentList } from "./document-list"
 import { TrashBox } from "./trash-box";
 import { useSearch } from "@/hooks/use-search";
+import { useSettings } from "@/hooks/use-settings";
 
 export const Navigation = () => {
-    const search = useSearch()
+    const settings = useSettings();
+    const search = useSearch();
     const pathname = usePathname();
     const isMobile = useMediaQuery("(max-width: 768px)");
+    const create = useMutation(api.documents.create);
 
-    const create = useMutation(api.documents.create)
-
-;
     const isResizingRef = useRef(false);
     const sidebarRef = useRef<ElementRef<"aside">>(null);
     const navbarRef = useRef<ElementRef<"div">>(null);
@@ -151,7 +151,7 @@ export const Navigation = () => {
                     <Item 
                         label="Settings"
                         icon={Settings}
-                        onClick={() => {}}
+                        onClick={settings.onOpen}
                     />
 
                     <Item 
