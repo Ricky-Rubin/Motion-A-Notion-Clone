@@ -3,7 +3,7 @@
 import { ChevronsLeft, MenuIcon, PlusCircle, Search, Settings, Plus, Trash } from "lucide-react"
 import { ElementRef, useRef, useState, useEffect } from "react";
 import { useMediaQuery } from "usehooks-ts";
-import { usePathname } from "next/navigation"
+import { usePathname, useParams } from "next/navigation"
 
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils"
 import { UserItem } from "./user-item";
 import { Item } from "./item";
+import { Navbar } from "./navbar";
 
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 
@@ -21,6 +22,8 @@ import { useSearch } from "@/hooks/use-search";
 import { useSettings } from "@/hooks/use-settings";
 
 export const Navigation = () => {
+    const params = useParams();
+
     const settings = useSettings();
     const search = useSearch();
     const pathname = usePathname();
@@ -199,9 +202,16 @@ export const Navigation = () => {
                     isMobile && "left-0 w-full"
                 )}
             >
-                <nav className="bg-transparent px-3 py-2 w-full">
-                    {isCollapsed && <MenuIcon onClick={resetWidth} role="button" className="h-6 w-6 text-muted-foreground" />}
-                </nav>
+                {!!params.documentId ? (
+                    <Navbar 
+                        isCollapsed={isCollapsed}
+                        onResetWidth={resetWidth}
+                    />
+                ) : (
+                    <nav className="bg-transparent px-3 py-2 w-full">
+                        {isCollapsed && <MenuIcon onClick={resetWidth} role="button" className="h-6 w-6 text-muted-foreground" />}
+                    </nav>
+                )}
             </div>
         </>
     )
