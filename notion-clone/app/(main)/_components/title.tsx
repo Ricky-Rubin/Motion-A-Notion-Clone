@@ -8,6 +8,8 @@ import { useMutation } from "convex/react";
 import { Doc } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 interface TitleProps {
     initialData: Doc<"documents">;
 };
@@ -82,3 +84,9 @@ export const Title = ({
         </div>
     )
 }
+
+Title.Skeleton = function TitleSkeleton() {
+    return (
+        <Skeleton className="h-9 w-16 rounded-md" />
+    );
+};
