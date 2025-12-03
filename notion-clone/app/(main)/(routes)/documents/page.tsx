@@ -50,7 +50,7 @@ const DocumentsPage = () => {
                 Create a note
             </Button>
         </div> 
-    );
-};
+    )
+}
 
 export default DocumentsPage;

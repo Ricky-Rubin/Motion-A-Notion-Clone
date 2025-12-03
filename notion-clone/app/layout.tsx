@@ -7,8 +7,7 @@ import "./globals.css";
 
 import { ConvexClientProvider } from "@/components/ui/provider/convex-provider";
 import { ThemeProvider } from "@/components/ui/provider/theme-provider";
-import { ModalProvider } from "@/components/ui/provider/modal-provider"
-
+import { ModalProvider } from "@/components/ui/provider/modal-provider";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -65,5 +64,5 @@ export default function RootLayout({
       </ConvexClientProvider>
       </body>
     </html>
-  );
+  )
 }
