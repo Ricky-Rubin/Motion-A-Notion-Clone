@@ -1,256 +1,225 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
-import {
-  AlertCircleIcon,
-  Trash2Icon,
-  UploadCloudIcon,
-  XIcon,
-} from 'lucide-react';
-import * as React from 'react';
-import { useDropzone, type DropzoneOptions } from 'react-dropzone';
-import { ProgressCircle } from './progress-circle';
-import { formatFileSize, useUploader } from './uploader-provider';
+import { UploadCloudIcon, X } from "lucide-react";
+import * as React from "react";
+import { useDropzone, type DropzoneOptions } from "react-dropzone";
+import { twMerge } from "tailwind-merge";
 
 import { Spinner } from "@/components/ui/spinner";
 
-const DROPZONE_VARIANTS = {
-  base: 'relative rounded-md p-4 flex justify-center items-center flex-col cursor-pointer min-h-[150px] min-w-[200px] border-2 border-dashed border-muted-foreground transition-colors duration-200 ease-in-out',
-  image: 'border-0 p-0 min-h-0 min-w-0 relative bg-muted shadow-md',
-  active: 'border-primary',
+const variants = {
+  base: "relative rounded-md flex justify-center items-center flex-col cursor-pointer min-h-[150px] min-w-[200px] border border-dashed border-gray-400 dark:border-gray-300 transition-colors duration-200 ease-in-out",
+  image:
+    "border-0 p-0 min-h-0 min-w-0 relative shadow-md bg-slate-200 dark:bg-slate-900 rounded-md",
+  active: "border-2",
   disabled:
-    'bg-muted/50 border-muted-foreground/50 cursor-default pointer-events-none',
-  accept: 'border-primary bg-primary/10',
-  reject: 'border-destructive bg-destructive/10',
+    "bg-gray-200 border-gray-300 cursor-default pointer-events-none bg-opacity-30 dark:bg-gray-700",
+  accept: "border border-blue-500 bg-blue-500 bg-opacity-10",
+  reject: "border border-red-700 bg-red-700 bg-opacity-10",
 };
 
-/**
- * Props for the SingleImageDropzone component.
- *
- * @interface SingleImageDropzoneProps
- * @extends {React.HTMLAttributes<HTMLInputElement>}
- */
-export interface SingleImageDropzoneProps
-  extends React.HTMLAttributes<HTMLInputElement> {
-  /**
-   * The width of the dropzone area in pixels.
-   */
+type InputProps = {
   width?: number;
-
-  /**
-   * The height of the dropzone area in pixels.
-   */
   height?: number;
-
-  /**
-   * Whether the dropzone is disabled.
-   */
+  className?: string;
+  value?: File | string;
+  onChange?: (file?: File) => void | Promise<void>;
   disabled?: boolean;
+  dropzoneOptions?: Omit<DropzoneOptions, "disabled">;
+};
 
-  /**
-   * Options passed to the underlying react-dropzone component.
-   * Cannot include 'disabled', 'onDrop', 'maxFiles', or 'multiple' as they are handled internally.
-   */
-  dropzoneOptions?: Omit<
-    DropzoneOptions,
-    'disabled' | 'onDrop' | 'maxFiles' | 'multiple'
-  >;
-}
+const ERROR_MESSAGES = {
+  fileTooLarge(maxSize: number) {
+    return `The file is too large. Max size is ${formatFileSize(maxSize)}.`;
+  },
+  fileInvalidType() {
+    return "Invalid file type.";
+  },
+  tooManyFiles(maxFiles: number) {
+    return `You can only add ${maxFiles} file(s).`;
+  },
+  fileNotSupported() {
+    return "The file is not supported.";
+  },
+};
 
-/**
- * A single image upload component with preview and upload status.
- *
- * This component allows users to upload a single image, shows a preview,
- * displays upload progress, and provides controls to remove or cancel the upload.
- *
- * @component
- * @example
- * ```tsx
- * <SingleImageDropzone
- *   width={320}
- *   height={320}
- *   dropzoneOptions={{ maxSize: 1024 * 1024 * 2 }} // 2MB
- * />
- * ```
- */
-const SingleImageDropzone = React.forwardRef<
-  HTMLInputElement,
-  SingleImageDropzoneProps
->(({ dropzoneOptions, width, height, className, disabled, ...props }, ref) => {
-  const { fileStates, addFiles, removeFile, cancelUpload } = useUploader();
-  const [error, setError] = React.useState<string>();
-
-  const fileState = React.useMemo(() => fileStates[0], [fileStates]);
-  const maxSize = dropzoneOptions?.maxSize;
-
-  // Create temporary URL for image preview before upload is complete
-  const tempUrl = React.useMemo(() => {
-    if (fileState?.file) {
-      return URL.createObjectURL(fileState.file);
-    }
-    return null;
-  }, [fileState]);
-
-  // Clean up temporary URL to prevent memory leaks
-  React.useEffect(() => {
-    return () => {
-      if (tempUrl) {
-        URL.revokeObjectURL(tempUrl);
+const SingleImageDropzone = React.forwardRef<HTMLInputElement, InputProps>(
+  (
+    { dropzoneOptions, width, height, value, className, disabled, onChange },
+    ref,
+  ) => {
+    const imageUrl = React.useMemo(() => {
+      if (typeof value === "string") {
+        // in case a url is passed in, use it to display the image
+        return value;
+      } else if (value) {
+        // in case a file is passed in, create a base64 url to display the image
+        return URL.createObjectURL(value);
       }
-    };
-  }, [tempUrl]);
+      return null;
+    }, [value]);
 
-  const displayUrl = tempUrl ?? fileState?.url;
-  const isDisabled =
-    !!disabled ||
-    fileState?.status === 'UPLOADING' ||
-    fileState?.status === 'COMPLETE'; // Disable when upload complete
-
-  const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
-    useDropzone({
-      accept: { 'image/*': [] }, // Accept only image files
+    // dropzone configuration
+    const {
+      getRootProps,
+      getInputProps,
+      acceptedFiles,
+      fileRejections,
+      isFocused,
+      isDragAccept,
+      isDragReject,
+    } = useDropzone({
+      accept: { "image/*": [] },
       multiple: false,
-      disabled: isDisabled,
-      onDrop: (acceptedFiles, rejectedFiles) => {
-        setError(undefined);
-
-        // Handle rejections first
-        if (rejectedFiles.length > 0) {
-          if (rejectedFiles[0]?.errors[0]) {
-            const error = rejectedFiles[0].errors[0];
-            const code = error.code;
-
-            // User-friendly error messages
-            const messages: Record<string, string> = {
-              'file-too-large': `The file is too large. Max size is ${formatFileSize(
-                maxSize ?? 0,
-              )}.`,
-              'file-invalid-type': 'Invalid file type.',
-              'too-many-files': 'You can only upload one file.',
-              default: 'The file is not supported.',
-            };
-
-            setError(messages[code] ?? messages.default);
-          }
-          return; // Exit early if there are any rejections
-        }
-
-        // Handle accepted files only if there are no rejections
-        if (acceptedFiles.length > 0) {
-          // Remove existing file before adding a new one
-          if (fileStates[0]) {
-            removeFile(fileStates[0].key);
-          }
-          addFiles(acceptedFiles);
+      disabled,
+      onDrop: (acceptedFiles) => {
+        const file = acceptedFiles[0];
+        if (file) {
+          void onChange?.(file);
         }
       },
       ...dropzoneOptions,
     });
 
-  const dropZoneClassName = React.useMemo(
-    () =>
-      cn(
-        DROPZONE_VARIANTS.base,
-        isFocused && DROPZONE_VARIANTS.active,
-        isDisabled && DROPZONE_VARIANTS.disabled,
-        displayUrl && DROPZONE_VARIANTS.image,
-        isDragReject && DROPZONE_VARIANTS.reject,
-        isDragAccept && DROPZONE_VARIANTS.accept,
+    // styling
+    const dropZoneClassName = React.useMemo(
+      () =>
+        twMerge(
+          variants.base,
+          isFocused && variants.active,
+          disabled && variants.disabled,
+          imageUrl && variants.image,
+          (isDragReject ?? fileRejections[0]) && variants.reject,
+          isDragAccept && variants.accept,
+          className,
+        ).trim(),
+      [
+        isFocused,
+        imageUrl,
+        fileRejections,
+        isDragAccept,
+        isDragReject,
+        disabled,
         className,
-      ),
-    [isFocused, isDisabled, displayUrl, isDragAccept, isDragReject, className],
-  );
+      ],
+    );
 
-  // Combined error message from dropzone or file state
-  const errorMessage = error ?? fileState?.error;
+    // error validation messages
+    const errorMessage = React.useMemo(() => {
+      if (fileRejections[0]) {
+        const { errors } = fileRejections[0];
+        if (errors[0]?.code === "file-too-large") {
+          return ERROR_MESSAGES.fileTooLarge(dropzoneOptions?.maxSize ?? 0);
+        } else if (errors[0]?.code === "file-invalid-type") {
+          return ERROR_MESSAGES.fileInvalidType();
+        } else if (errors[0]?.code === "too-many-files") {
+          return ERROR_MESSAGES.tooManyFiles(dropzoneOptions?.maxFiles ?? 0);
+        } else {
+          return ERROR_MESSAGES.fileNotSupported();
+        }
+      }
+      return undefined;
+    }, [fileRejections, dropzoneOptions]);
 
-  return (
-    <div className="flex flex-col items-center">
-      {disabled && (
-        <div className="flex items-center-justify-center absolute
-        inset-y-0 h-full w-full bg-background/80 z-50">
-          <Spinner size="lg" />
-        </div>
-      )}
-      <div
-        {...getRootProps({
-          className: dropZoneClassName,
-          style: {
-            width,
-            height,
-          },
-        })}
-      >
-        <input ref={ref} {...getInputProps()} {...props} />
+    return (
+      <div className="relative">
+        {disabled && (
+          <div className="absolute inset-y-0 z-50 flex h-full w-full items-center justify-center bg-background/80">
+            <Spinner size="md" />
+          </div>
+        )}
+        <div
+          {...getRootProps({
+            className: dropZoneClassName,
+            style: {
+              width,
+              height,
+            },
+          })}
+        >
+          {/* Main File Input */}
+          <input ref={ref} {...getInputProps()} />
 
-        {displayUrl ? (
-          <img
-            className="h-full w-full rounded-md object-cover"
-            src={displayUrl}
-            alt={fileState?.file.name ?? 'uploaded image'}
-          />
-        ) : (
-          // Placeholder content shown when no image is selected
-          <div
-            className={cn(
-              'flex flex-col items-center justify-center gap-2 text-center text-xs text-muted-foreground',
-              isDisabled && 'opacity-50',
-            )}
-          >
-            <UploadCloudIcon className="mb-1 h-7 w-7" />
-            <div className="font-medium">
-              drag & drop an image or click to select
+          {imageUrl ? (
+            // Image Preview
+            <img
+              className="h-full w-full rounded-md object-cover"
+              src={imageUrl}
+              alt={acceptedFiles[0]?.name}
+            />
+          ) : (
+            // Upload Icon
+            <div className="flex flex-col items-center justify-center text-xs text-gray-400">
+              <UploadCloudIcon className="mb-2 h-7 w-7" />
+              <div className="text-gray-400">
+                Click or drag to this area to upload
+              </div>
             </div>
-            {maxSize && (
-              <div className="text-xs">Max size: {formatFileSize(maxSize)}</div>
-            )}
-          </div>
-        )}
+          )}
 
-        {/* Upload progress overlay */}
-        {displayUrl && fileState?.status === 'UPLOADING' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-md bg-black/70">
-            <ProgressCircle progress={fileState.progress} />
-          </div>
-        )}
-
-        {/* Remove/Cancel button */}
-        {displayUrl &&
-          !disabled &&
-          fileState &&
-          fileState.status !== 'COMPLETE' && (
-            <button
-              type="button"
-              className="group pointer-events-auto absolute right-1 top-1 z-10 transform rounded-full border border-muted-foreground bg-background p-1 shadow-md transition-all hover:scale-110"
+          {/* Remove Image Icon */}
+          {imageUrl && !disabled && (
+            <div
+              className="group absolute right-0 top-0 -translate-y-1/4 translate-x-1/4 transform"
               onClick={(e) => {
-                e.stopPropagation(); // Prevent triggering dropzone click
-                if (fileState.status === 'UPLOADING') {
-                  cancelUpload(fileState.key);
-                } else {
-                  removeFile(fileState.key);
-                  setError(undefined); // Clear any error when removing the file
-                }
+                e.stopPropagation();
+                void onChange?.(undefined);
               }}
             >
-              {fileState.status === 'UPLOADING' ? (
-                <XIcon className="block h-4 w-4 text-muted-foreground" />
-              ) : (
-                <Trash2Icon className="block h-4 w-4 text-muted-foreground" />
-              )}
-            </button>
+              <div className="flex h-5 w-5 items-center justify-center rounded-md border border-solid border-gray-500 bg-white transition-all duration-300 hover:h-6 hover:w-6 dark:border-gray-400 dark:bg-black">
+                <X
+                  className="text-gray-500 dark:text-gray-400"
+                  width={16}
+                  height={16}
+                />
+              </div>
+            </div>
           )}
-      </div>
-
-      {/* Error message display */}
-      {errorMessage && (
-        <div className="mt-2 flex items-center text-xs text-destructive">
-          <AlertCircleIcon className="mr-1 h-4 w-4" />
-          <span>{errorMessage}</span>
         </div>
+
+        {/* Error Text */}
+        <div className="mt-1 text-xs text-red-500">{errorMessage}</div>
+      </div>
+    );
+  },
+);
+SingleImageDropzone.displayName = "SingleImageDropzone";
+
+const Button = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>(({ className, ...props }, ref) => {
+  return (
+    <button
+      className={twMerge(
+        // base
+        "inline-flex cursor-pointer items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+        // color
+        "border border-gray-400 text-gray-400 shadow hover:bg-gray-100 hover:text-gray-500 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-700",
+        // size
+        "h-6 rounded-md px-2 text-xs",
+        className,
       )}
-    </div>
+      ref={ref}
+      {...props}
+    />
   );
 });
-SingleImageDropzone.displayName = 'SingleImageDropzone';
+Button.displayName = "Button";
+
+function formatFileSize(bytes?: number) {
+  if (!bytes) {
+    return "0 Bytes";
+  }
+  bytes = Number(bytes);
+  if (bytes === 0) {
+    return "0 Bytes";
+  }
+  const k = 1024;
+  const dm = 2;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+}
 
 export { SingleImageDropzone };
