@@ -1,7 +1,7 @@
 "use client";
 
 import { BlockNoteEditor, PartialBlock } from "@blocknote/core";
-import { useCreateBlockNote } from "@blocknote/react";
+import { useCreateBlockNote, useEditorChange } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 
 import "@blocknote/core/style.css";
@@ -27,10 +27,12 @@ export const Editor = ({
     const editor: BlockNoteEditor = useCreateBlockNote({
         editable,
         initialContent: initialContent ? JSON.parse(initialContent) as PartialBlock[] : undefined,
-        onEditorContentChange: (editor: BlockNoteEditor) => {
-            onChange(JSON.stringify(editor.topLevelBlocks, null, 2));
-        },
     })
+
+    useEditorChange((editor) => {
+            const content = JSON.stringify(editor.document, null, 2);
+            onChange(content);
+    }, editor);
 
     return (
         <div>

@@ -1,11 +1,11 @@
 "use client";
 
 import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
 
 import { Toolbar } from "@/components/toolbar";
-import { use } from "react";
+import { use, useCallback, useRef } from "react";
 
 import { Cover } from "@/components/cover";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,6 +27,23 @@ const DocumentIdPage = ({
     const document = useQuery(api.documents.getById, {
         documentId: documentId
     });
+
+    const update = useMutation(api.documents.update);
+
+    const debounceTimeRef = useRef<NodeJS.Timeout | null>(null);
+
+    const onChange = useCallback((content: string) => {
+        if (debounceTimeRef.current) {
+            clearTimeout(debounceTimeRef.current)
+        }
+
+        debounceTimeRef.current = setTimeout(() => {
+            update({
+                id: documentId,
+                content
+            });
+        }, 500)
+    }, [documentId, update]);
 
     if (document === undefined) {
         return (
@@ -58,7 +75,7 @@ const DocumentIdPage = ({
                 <Toolbar initialData={document} />
 
                 <Editor
-                    onChange={() => {}}
+                    onChange={onChange}
                     initialContent={document.content}
                 />
             </div>
