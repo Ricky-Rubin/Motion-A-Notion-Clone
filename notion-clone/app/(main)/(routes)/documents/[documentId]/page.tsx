@@ -5,7 +5,8 @@ import { useQuery, useMutation } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
 
 import { Toolbar } from "@/components/toolbar";
-import { use, useCallback, useRef } from "react";
+import { use, useCallback, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import { Cover } from "@/components/cover";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +24,7 @@ const DocumentIdPage = ({
 }: DocumentIdPageProps) => {
 
     const { documentId } = use(params);
+    const router = useRouter();
 
     const document = useQuery(api.documents.getById, {
         documentId: documentId
@@ -45,6 +47,12 @@ const DocumentIdPage = ({
         }, 500)
     }, [documentId, update]);
 
+    useEffect(() => {
+        if (document === null) {
+            router.push("/documents");
+        }
+    }, [document, router]);
+
     if (document === undefined) {
         return (
             <div>
@@ -62,7 +70,9 @@ const DocumentIdPage = ({
     };
 
     if (document === null) {
-        return <div>Not found</div>
+        // router.push("/documents");
+        return null;
+        // return <div>Not found</div>
     }
 
     return (
