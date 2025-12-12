@@ -3,7 +3,7 @@
 import { ChevronsLeft, MenuIcon, PlusCircle, Search, Settings, Plus, Trash } from "lucide-react"
 import { ElementRef, useRef, useState, useEffect } from "react";
 import { useMediaQuery } from "usehooks-ts";
-import { usePathname, useParams } from "next/navigation"
+import { usePathname, useParams, useRouter } from "next/navigation"
 
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -24,6 +24,7 @@ import { useSettings } from "@/hooks/use-settings";
 export const Navigation = () => {
     const params = useParams();
 
+    const router = useRouter();
     const settings = useSettings();
     const search = useSearch();
     const pathname = usePathname();
@@ -112,7 +113,8 @@ export const Navigation = () => {
     }
 
     const handleCreate = () => {
-        const promise = create({ title: "Untitled" });
+        const promise = create({ title: "Untitled" })
+            .then((documentId) => router.push(`/documents/${documentId}`))
 
         toast.promise(promise, {
             loading: "Creating a new note...",
