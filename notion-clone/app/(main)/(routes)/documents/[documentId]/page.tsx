@@ -70,9 +70,7 @@ const DocumentIdPage = ({
     };
 
     if (document === null) {
-        // router.push("/documents");
         return null;
-        // return <div>Not found</div>
     }
 
     return (
