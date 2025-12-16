@@ -15,6 +15,7 @@ import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
 // import Editor from "@/components/editor";
+// import { notFound } from "next/navigation";
 
 interface DocumentIdPageProps {
     params: Promise<{
@@ -76,6 +77,7 @@ const DocumentIdPage = ({
     };
 
     if (document === null) {
+        // throw new Error("Document not found");
         return null;
     }
 
