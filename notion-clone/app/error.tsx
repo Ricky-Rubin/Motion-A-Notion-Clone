@@ -21,7 +21,7 @@ interface ErrorProps {
 
 const Error = ({ error, reset }: ErrorProps) => {
     return (
-        <div className="h-full flex flex-col items-center justify-center space-y-4">
+        <div className="h-full flex flex-col items-center justify-center space-y-4 bg-background dark:bg-[#1F1F1F]">
             <Image
                 src="/error.svg"
                 height="300"
