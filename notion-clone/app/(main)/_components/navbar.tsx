@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 
 import { Id } from "@/convex/_generated/dataModel"
 import { MenuIcon } from "lucide-react";
+import { Publish } from "./publish";
 
 import { Title } from "./title";
 import { Banner } from "./banner";
@@ -62,6 +63,7 @@ export const Navbar = ({
                     />
 
                     <div className="flex items-center gap-x-2">
+                        <Publish initialData={document} />
                         <Menu documentId={document._id} />
                     </div>
                 </div>
