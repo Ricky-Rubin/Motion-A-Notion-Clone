@@ -79,7 +79,7 @@ const DocumentIdPage = ({
     }
 
     return (
-        <div className="pb-40">
+        <div className="pb-40 min-h-screen bg:background dark:bg-[#1F1F1F]">
             <Cover
                 preview
                 url={document.coverImage}
