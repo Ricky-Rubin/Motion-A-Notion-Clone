@@ -14,12 +14,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
-interface ErrorProps {
-    error: Error;
-    reset: () => void
-}
-
-const Error = ({ error, reset }: ErrorProps) => {
+const Error = ({}) => {
     return (
         <div className="h-full flex flex-col items-center justify-center space-y-4 bg-background dark:bg-[#1F1F1F]">
             <Image
