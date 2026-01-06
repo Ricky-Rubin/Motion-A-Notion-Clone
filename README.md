@@ -143,4 +143,4 @@ Building Motion taught me that sometimes the biggest bugs hide in the smallest d
 
 Feel free to reach out if you have questions or want to collaborate!
 
-- **Twitter**: [@thetimiddev]
+- **Twitter**: [@thetimiddev](https://x.com/thetimiddev)
